@@ -15,3 +15,7 @@ tasks:
   migrate_down:
     cmds:
       - migrate -path ./internal/db/migrations -database "postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE" -verbose down
+
+  sqlc:
+    cmds:
+      - sqlc generate
