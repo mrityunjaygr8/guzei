@@ -5,7 +5,7 @@
   env.GREET = "devenv";
 
   # https://devenv.sh/packages/
-  packages = with pkgs; [ git lazygit postgresql_15 fish go-migrate sqlc go-task ];
+  packages = with pkgs; [ git lazygit postgresql_15 fish go-migrate sqlc go-task air ];
 
   # https://devenv.sh/scripts/
   scripts.hello.exec = "echo hello from $GREET";
