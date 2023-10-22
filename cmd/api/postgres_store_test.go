@@ -33,24 +33,24 @@ func setupTest(t testing.TB) (*PostgresStore, func(tb testing.TB)) {
 	}
 }
 
-func TestPostgresStore(t *testing.T) {
-
+func TestPostgresStoreUserInsert(t *testing.T) {
 	t.Run("test UserInsert method happy path", func(t *testing.T) {
 		store, teardownTest := setupTest(t)
 		defer teardownTest(t)
 
 		email := "im@parham.im"
 		password := "password"
+		id := "123"
 		admin := true
 
-		user, err := store.UserInsert(email, password, admin)
+		user, err := store.UserInsert(email, password, id, admin)
 
 		fmt.Println(err)
 		require.Nil(t, err)
 
 		require.Equal(t, email, user.Email)
 		require.Equal(t, admin, user.Admin)
-		require.NotNil(t, user.ID)
+		require.Equal(t, id, user.ID)
 		require.NotNil(t, user.CreatedAt)
 		require.Zero(t, user.UpdatedAt)
 	})
@@ -61,16 +61,19 @@ func TestPostgresStore(t *testing.T) {
 
 		email := "im@parham.im"
 		password := "password"
+		id := "123"
 		admin := true
 
-		_, _ = store.UserInsert(email, password, admin)
-		_, err := store.UserInsert(email, password, admin)
+		_, _ = store.UserInsert(email, password, id, admin)
+		_, err := store.UserInsert(email, password, id, admin)
 
 		require.Error(t, err)
 		require.Equal(t, ErrUserExists, err)
 
 	})
+}
 
+func TestPostgresStoreUserList(t *testing.T) {
 	t.Run("test UserList method happy path", func(t *testing.T) {
 		store, teardownTest := setupTest(t)
 		defer teardownTest(t)
@@ -78,21 +81,22 @@ func TestPostgresStore(t *testing.T) {
 		email := "im@parham.im123"
 		password := "password"
 		admin := true
+		id := "123"
 
-		_, _ = store.UserInsert("a"+email, password, admin)
-		_, _ = store.UserInsert(email, password, admin)
-		_, _ = store.UserInsert(email+"a", password, admin)
-		_, _ = store.UserInsert(email+"b", password, admin)
-		_, _ = store.UserInsert(email+"c", password, admin)
-		_, _ = store.UserInsert(email+"d", password, admin)
-		_, _ = store.UserInsert(email+"e", password, admin)
-		_, _ = store.UserInsert(email+"f", password, admin)
-		_, _ = store.UserInsert(email+"g", password, admin)
-		_, _ = store.UserInsert(email+"h", password, admin)
-		_, _ = store.UserInsert(email+"i", password, admin)
-		_, _ = store.UserInsert(email+"j", password, admin)
-		_, _ = store.UserInsert(email+"k", password, admin)
-		_, _ = store.UserInsert(email+"l", password, admin)
+		_, _ = store.UserInsert("a"+email, password, "1", admin)
+		_, _ = store.UserInsert(email, password, id, admin)
+		_, _ = store.UserInsert(email+"a", password, "3", admin)
+		_, _ = store.UserInsert(email+"b", password, "4", admin)
+		_, _ = store.UserInsert(email+"c", password, "5", admin)
+		_, _ = store.UserInsert(email+"d", password, "6", admin)
+		_, _ = store.UserInsert(email+"e", password, "7", admin)
+		_, _ = store.UserInsert(email+"f", password, "8", admin)
+		_, _ = store.UserInsert(email+"g", password, "9", admin)
+		_, _ = store.UserInsert(email+"h", password, "10", admin)
+		_, _ = store.UserInsert(email+"i", password, "11", admin)
+		_, _ = store.UserInsert(email+"j", password, "12", admin)
+		_, _ = store.UserInsert(email+"k", password, "13", admin)
+		_, _ = store.UserInsert(email+"l", password, "14", admin)
 		users, err := store.UserList(1, 10)
 		require.Nil(t, err)
 		require.NotNil(t, users)
@@ -102,7 +106,7 @@ func TestPostgresStore(t *testing.T) {
 
 		require.Equal(t, email, users.data[1].Email)
 		require.Equal(t, admin, users.data[1].Admin)
-		require.NotNil(t, users.data[1].ID)
+		require.Equal(t, id, users.data[1].ID)
 		require.NotNil(t, users.data[1].CreatedAt)
 		require.Zero(t, users.data[1].UpdatedAt)
 
@@ -121,3 +125,4 @@ func TestPostgresStore(t *testing.T) {
 	})
 
 }
+

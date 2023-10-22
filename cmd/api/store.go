@@ -6,7 +6,7 @@ import (
 )
 
 type GuzeiStore interface {
-	UserInsert(email, password string, admin bool) (*User, error)
+	UserInsert(email, password, id string, admin bool) (*User, error)
 	UserList(pageSize, pageNumber int) (*UsersList, error)
 }
 

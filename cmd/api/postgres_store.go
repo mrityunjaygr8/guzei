@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,18 +31,17 @@ func NewPostgresStore(dbString string) (*PostgresStore, error) {
 	return &PostgresStore{db: db}, nil
 }
 
-func (p *PostgresStore) UserInsert(email, password string, admin bool) (*User, error) {
+func (p *PostgresStore) UserInsert(email, password, id string, admin bool) (*User, error) {
 	tx, err := p.db.BeginTx(context.Background(), pgx.TxOptions{})
 	if err != nil {
 		return nil, errors.New("error creating database transaction")
 	}
 
 	query := models.New(tx)
-	id := uuid.New()
 	params := models.UserInsertParams{
 		Email:    email,
 		Password: password,
-		ID:       id.String(),
+		ID:       id,
 		Admin:    admin,
 	}
 	dbUser, err := query.UserInsert(context.Background(), params)
