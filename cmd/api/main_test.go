@@ -9,7 +9,11 @@ import (
 )
 
 func TestMainApi(t *testing.T) {
-	server := NewApplication()
+	//store, err := NewPostgresStore(TestDBString)
+	//require.Nil(t, err)
+	store, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	server := NewApplication(store)
 	t.Run("tests if the API server is running", func(t *testing.T) {
 		req, err := http.NewRequest(http.MethodGet, "/", nil)
 		require.Nil(t, err)
