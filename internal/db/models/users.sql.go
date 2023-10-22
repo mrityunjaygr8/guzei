@@ -111,7 +111,12 @@ func (q *Queries) UserUpdatePassword(ctx context.Context, arg UserUpdatePassword
 }
 
 const usersList = `-- name: UsersList :many
-SELECT email, "createdAt", "updatedAt", "ID", admin FROM users ORDER BY email LIMIT $1 OFFSET $2
+WITH row_data AS (
+    SELECT email, "createdAt", "updatedAt", "ID", admin FROM users ORDER BY email LIMIT $1 OFFSET $2
+) SELECT
+      email, "createdAt", "updatedAt", "ID", admin,
+      (SELECT COUNT(*) FROM users) AS row_data
+FROM row_data
 `
 
 type UsersListParams struct {
@@ -125,6 +130,7 @@ type UsersListRow struct {
 	UpdatedAt pgtype.Timestamptz
 	ID        string
 	Admin     bool
+	RowData   int64
 }
 
 func (q *Queries) UsersList(ctx context.Context, arg UsersListParams) ([]UsersListRow, error) {
@@ -142,6 +148,7 @@ func (q *Queries) UsersList(ctx context.Context, arg UsersListParams) ([]UsersLi
 			&i.UpdatedAt,
 			&i.ID,
 			&i.Admin,
+			&i.RowData,
 		); err != nil {
 			return nil, err
 		}
