@@ -3,6 +3,9 @@ version: 3
 dotenv:
   - '.env'
 
+vars:
+  DATABASE_URL: postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE
+
 tasks:
   create_migration:
       cmds:
@@ -10,12 +13,16 @@ tasks:
 
   migrate_up:
       cmds:
-        - migrate -path ./internal/db/migrations -database "postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE" -verbose up
+        - migrate -path ./internal/db/migrations -database {{ .DATABASE_URL }} -verbose up
 
   migrate_down:
     cmds:
-      - migrate -path ./internal/db/migrations -database "postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE" -verbose down
+      - migrate -path ./internal/db/migrations -database {{ .DATABASE_URL }} -verbose down
 
   sqlc:
     cmds:
       - sqlc generate
+
+  air:
+    cmds:
+      - DATABASE_URL={{ .DATABASE_URL }} air
