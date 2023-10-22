@@ -157,3 +157,18 @@ func TestPostgresStoreUserRetrieve(t *testing.T) {
 	})
 }
 
+func TestNewPostgresStoreUserUpdatePassword(t *testing.T) {
+	t.Run("UserUpdatePassword happy path", func(t *testing.T) {
+		store, teardownTest := setupTest(t)
+		defer teardownTest(t)
+		
+		email := "im@parham.im123"
+		password := "password"
+		admin := true
+		id := "123"
+
+		user, err := store.UserInsert(email, password, id, admin)
+		require.Nil(t, err)
+		require.NotNil(t, user)
+	})
+}
