@@ -81,18 +81,43 @@ func TestPostgresStore(t *testing.T) {
 
 		_, _ = store.UserInsert("a"+email, password, admin)
 		_, _ = store.UserInsert(email, password, admin)
+		_, _ = store.UserInsert(email+"a", password, admin)
+		_, _ = store.UserInsert(email+"b", password, admin)
+		_, _ = store.UserInsert(email+"c", password, admin)
+		_, _ = store.UserInsert(email+"d", password, admin)
+		_, _ = store.UserInsert(email+"e", password, admin)
+		_, _ = store.UserInsert(email+"f", password, admin)
+		_, _ = store.UserInsert(email+"g", password, admin)
+		_, _ = store.UserInsert(email+"h", password, admin)
+		_, _ = store.UserInsert(email+"i", password, admin)
+		_, _ = store.UserInsert(email+"j", password, admin)
+		_, _ = store.UserInsert(email+"k", password, admin)
+		_, _ = store.UserInsert(email+"l", password, admin)
 		users, err := store.UserList(1, 10)
 		require.Nil(t, err)
 		require.NotNil(t, users)
 
-		require.Equal(t, 2, len(users))
+		require.Equal(t, 14, users.totalObjects)
+		require.Equal(t, 2, users.totalPages)
 
-		require.Equal(t, email, users[1].Email)
-		require.Equal(t, admin, users[1].Admin)
-		require.NotNil(t, users[1].ID)
-		require.NotNil(t, users[1].CreatedAt)
-		require.Zero(t, users[1].UpdatedAt)
+		require.Equal(t, email, users.data[1].Email)
+		require.Equal(t, admin, users.data[1].Admin)
+		require.NotNil(t, users.data[1].ID)
+		require.NotNil(t, users.data[1].CreatedAt)
+		require.Zero(t, users.data[1].UpdatedAt)
 
+	})
+
+	t.Run("test UserList method no data", func(t *testing.T) {
+		store, teardownTest := setupTest(t)
+		defer teardownTest(t)
+
+		users, err := store.UserList(1, 10)
+		require.Nil(t, err)
+		require.NotNil(t, users)
+
+		require.Equal(t, 0, users.totalObjects)
+		require.Equal(t, 0, users.totalPages)
 	})
 
 }

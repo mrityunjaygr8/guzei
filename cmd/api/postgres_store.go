@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mrityunjaygr8/guzei/internal/db/models"
+	"math"
 )
 
 type PostgresStore struct {
@@ -68,7 +69,7 @@ func (p *PostgresStore) UserInsert(email, password string, admin bool) (*User, e
 	return user, nil
 }
 
-func (p *PostgresStore) UserList(pageNumber, pageSize int) ([]User, error) {
+func (p *PostgresStore) UserList(pageNumber, pageSize int) (*UsersList, error) {
 	query := models.New(p.db)
 	params := models.UsersListParams{
 		Limit:  int32(pageSize),
@@ -80,6 +81,8 @@ func (p *PostgresStore) UserList(pageNumber, pageSize int) ([]User, error) {
 	}
 
 	users := make([]User, 0)
+	totalObjects := 0
+	totalPages := 0
 
 	for _, user := range dbUsers {
 		users = append(users, User{
@@ -91,5 +94,10 @@ func (p *PostgresStore) UserList(pageNumber, pageSize int) ([]User, error) {
 		})
 	}
 
-	return users, nil
+	if len(dbUsers) > 0 {
+		totalObjects = int(dbUsers[0].RowData)
+		totalPages = int(math.Ceil(float64(totalObjects) / float64(pageSize)))
+	}
+
+	return &UsersList{users, totalObjects, totalPages}, nil
 }
