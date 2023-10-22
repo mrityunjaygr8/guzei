@@ -6,7 +6,7 @@ CREATE TABLE "lovinIt" (
                            "title" varchar NOT NULL,
                            "userID" varchar NOT NULL,
                            "lastUsed" date NOT NULL DEFAULT CURRENT_DATE,
-                           "createdAt" timestamptz
+                           "createdAt" timestamptz NOT NULL DEFAULT now()
 );
 
 ALTER TABLE "lovinIt" ADD CONSTRAINT "lovinIt_user_id" FOREIGN KEY ("userID") REFERENCES "users" ("ID");
