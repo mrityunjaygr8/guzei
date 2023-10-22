@@ -5,6 +5,7 @@ dotenv:
 
 vars:
   DATABASE_URL: postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME?sslmode=$DB_SSLMODE
+  TEST_DATABASE_URL: postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_TEST_NAME?sslmode=$DB_SSLMODE
 
 tasks:
   create_migration:
@@ -18,6 +19,14 @@ tasks:
   migrate_down:
     cmds:
       - migrate -path ./internal/db/migrations -database {{ .DATABASE_URL }} -verbose down
+
+  test_migrate_up:
+    cmds:
+      - migrate -path ./internal/db/migrations -database {{ .TEST_DATABASE_URL }} -verbose up
+
+  test_migrate_down:
+    cmds:
+      - migrate -path ./internal/db/migrations -database {{ .TEST_DATABASE_URL }} -verbose down
 
   sqlc:
     cmds:
