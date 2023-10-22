@@ -8,10 +8,11 @@ import (
 
 type Application struct {
 	router *chi.Mux
+	store  GuzeiStore
 }
 
-func NewApplication() *Application {
-	app := &Application{}
+func NewApplication(store GuzeiStore) *Application {
+	app := &Application{store: store}
 	app.router = chi.NewRouter()
 
 	app.setupRouter()
