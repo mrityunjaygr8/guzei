@@ -22,10 +22,17 @@ func NewApplication() *Application {
 func (a *Application) setupRouter() {
 	a.router.Use(middleware.Logger)
 
-	a.router.Get("/", helloWorldServer)
-	a.router.Get("/ping", pingPongHandler)
+	a.router.Get("/", a.helloWorldServer)
+	a.router.Get("/ping", a.pingPongHandler)
 }
 
 func (a *Application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.router.ServeHTTP(w, r)
+}
+func (a *Application) helloWorldServer(w http.ResponseWriter, _ *http.Request) {
+	w.Write([]byte("Hello World"))
+}
+
+func (a *Application) pingPongHandler(w http.ResponseWriter, _ *http.Request) {
+	w.Write([]byte("PONG"))
 }

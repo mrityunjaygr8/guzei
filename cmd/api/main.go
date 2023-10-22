@@ -12,11 +12,3 @@ func main() {
 
 	http.ListenAndServe(":3000", server)
 }
-
-func helloWorldServer(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("Hello World"))
-}
-
-func pingPongHandler(w http.ResponseWriter, _ *http.Request) {
-	w.Write([]byte("PONG"))
-}
