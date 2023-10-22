@@ -15,6 +15,8 @@
     git --version
   '';
 
+  dotenv.enable = true;
+
   # https://devenv.sh/languages/
   languages.go.enable = true;
   languages.go.package = pkgs.go_1_21;
