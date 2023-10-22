@@ -13,13 +13,18 @@ import (
 
 var TestDBString = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_TEST_NAME"), os.Getenv("DB_SSLMODE"))
 
-func setupTest(t testing.TB) func(tb testing.TB) {
-	log.Println("setup suite")
+func setupTest(t testing.TB) (*PostgresStore, func(tb testing.TB)) {
+	t.Log("setup suite")
+	t.Log(TestDBString)
 	m, err := migrate.New("file://./../../internal/db/migrations", TestDBString)
+	t.Log(err)
 	require.Nil(t, err)
 	err = m.Up()
 	require.Nil(t, err)
-	return func(tb testing.TB) {
+	store, err := NewPostgresStore(TestDBString)
+	require.Nil(t, err)
+	return store, func(tb testing.TB) {
+		defer store.db.Close()
 		log.Println("teardown suite")
 		m, err := migrate.New("file://./../../internal/db/migrations", TestDBString)
 		require.Nil(t, err)
@@ -29,11 +34,9 @@ func setupTest(t testing.TB) func(tb testing.TB) {
 }
 
 func TestPostgresStore(t *testing.T) {
-	store, err := NewPostgresStore(TestDBString)
-	require.Nil(t, err)
 
 	t.Run("test UserInsert method happy path", func(t *testing.T) {
-		teardownTest := setupTest(t)
+		store, teardownTest := setupTest(t)
 		defer teardownTest(t)
 
 		email := "im@parham.im"
@@ -53,7 +56,7 @@ func TestPostgresStore(t *testing.T) {
 	})
 
 	t.Run("test UserInsert for duplicates", func(t *testing.T) {
-		teardownTest := setupTest(t)
+		store, teardownTest := setupTest(t)
 		defer teardownTest(t)
 
 		email := "im@parham.im"
@@ -69,7 +72,7 @@ func TestPostgresStore(t *testing.T) {
 	})
 
 	t.Run("test UserList method happy path", func(t *testing.T) {
-		teardownTest := setupTest(t)
+		store, teardownTest := setupTest(t)
 		defer teardownTest(t)
 
 		email := "im@parham.im123"
