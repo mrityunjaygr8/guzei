@@ -8,6 +8,7 @@ import (
 type GuzeiStore interface {
 	UserInsert(email, password, id string, admin bool) (*User, error)
 	UserList(pageSize, pageNumber int) (*UsersList, error)
+	UserRetrieve(email string) (*User, error)
 }
 
 type User struct {
@@ -25,3 +26,4 @@ type UsersList struct {
 }
 
 var ErrUserExists = errors.New("user with specified email already exists")
+var ErrUserNotFound = errors.New("specified user does not exists")

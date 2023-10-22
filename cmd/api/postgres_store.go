@@ -99,3 +99,22 @@ func (p *PostgresStore) UserList(pageNumber, pageSize int) (*UsersList, error) {
 
 	return &UsersList{users, totalObjects, totalPages}, nil
 }
+
+func (p *PostgresStore) UserRetrieve(email string) (*User, error) {
+	query := models.New(p.db)
+	user, err := query.UserRetrieve(context.Background(), email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	return &User{
+		Email:     user.Email,
+		ID:        user.ID,
+		Admin:     user.Admin,
+		CreatedAt: user.CreatedAt.Time,
+		UpdatedAt: user.UpdatedAt.Time,
+	}, nil
+}

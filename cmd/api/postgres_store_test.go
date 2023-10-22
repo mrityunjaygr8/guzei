@@ -14,10 +14,7 @@ import (
 var TestDBString = fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", os.Getenv("DB_USER"), os.Getenv("DB_PASS"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_TEST_NAME"), os.Getenv("DB_SSLMODE"))
 
 func setupTest(t testing.TB) (*PostgresStore, func(tb testing.TB)) {
-	t.Log("setup suite")
-	t.Log(TestDBString)
 	m, err := migrate.New("file://./../../internal/db/migrations", TestDBString)
-	t.Log(err)
 	require.Nil(t, err)
 	err = m.Up()
 	require.Nil(t, err)
@@ -124,5 +121,39 @@ func TestPostgresStoreUserList(t *testing.T) {
 		require.Equal(t, 0, users.totalPages)
 	})
 
+}
+
+func TestPostgresStoreUserRetrieve(t *testing.T) {
+	t.Run("UserRetrieve happy path", func(t *testing.T) {
+		store, teardownTest := setupTest(t)
+		defer teardownTest(t)
+
+		email := "im@parham.im"
+		password := "password"
+		admin := true
+		id := "123"
+
+		user, err := store.UserInsert(email, password, id, admin)
+		require.Nil(t, err)
+		require.NotNil(t, user)
+
+		retrieved, err := store.UserRetrieve(user.Email)
+		t.Log(retrieved)
+		require.Nil(t, err)
+		require.NotNil(t, retrieved)
+
+		require.Equal(t, user, retrieved)
+	})
+
+	t.Run("UserRetrieve not exists", func(t *testing.T) {
+		store, teardownTest := setupTest(t)
+		defer teardownTest(t)
+
+		retrieved, err := store.UserRetrieve("im@parham.in")
+		require.Nil(t, retrieved)
+		require.NotNil(t, err)
+		t.Log(err)
+
+	})
 }
 
