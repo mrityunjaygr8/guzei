@@ -227,3 +227,31 @@ func TestNewPostgresStoreUserUpdateAdmin(t *testing.T) {
 		require.Equal(t, store.ErrUserNotFound, err)
 	})
 }
+func TestNewPostgresStoreUserDelete(t *testing.T) {
+	t.Run("UserDelete happy path", func(t *testing.T) {
+		postgresStore, teardownTest := setupTest(t)
+		defer teardownTest(t)
+
+		email := "im@parham.im123"
+		password := "password"
+		admin := true
+		id := "123"
+
+		user, err := postgresStore.UserInsert(email, password, id, admin)
+		require.Nil(t, err)
+		require.NotNil(t, user)
+
+		err = postgresStore.UserDelete(id)
+		require.Nil(t, err)
+	})
+	t.Run("UserUpdateAdmin user not exists", func(t *testing.T) {
+		postgresStore, teardownTest := setupTest(t)
+		defer teardownTest(t)
+
+		id := "1234"
+
+		err := postgresStore.UserDelete(id)
+		require.NotNil(t, err)
+		require.Equal(t, store.ErrUserNotFound, err)
+	})
+}

@@ -3,6 +3,7 @@ package postgres_store
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -17,6 +18,34 @@ type PostgresStore struct {
 
 var ErrCreatingPostgresPool = errors.New("error creating postgres pool")
 var ErrConnectingToPostgres = errors.New("error connecting to postgres")
+
+type transactionFunction func() error
+
+func (p *PostgresStore) createTx() (ctx context.Context, tx pgx.Tx, commit transactionFunction, rollback transactionFunction, err error) {
+	ctx = context.Background()
+	tx, err = p.db.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return nil, nil, nil, nil, fmt.Errorf("%w: %q", store.ErrStoreError, err)
+	}
+
+	commit = func() error {
+		err := tx.Commit(ctx)
+		if err != nil {
+			return fmt.Errorf("%w: %q", store.ErrStoreError, err)
+		}
+		return nil
+	}
+	rollback = func() error {
+		err := tx.Rollback(ctx)
+		if err != nil {
+			return fmt.Errorf("%w: %q", store.ErrStoreError, err)
+		}
+		return nil
+	}
+
+	return ctx, tx, commit, rollback, nil
+
+}
 
 func NewPostgresStore(dbString string) (*PostgresStore, error) {
 	db, err := pgxpool.New(context.Background(), dbString)
@@ -33,9 +62,9 @@ func NewPostgresStore(dbString string) (*PostgresStore, error) {
 }
 
 func (p *PostgresStore) UserInsert(email, password, id string, admin bool) (*store.User, error) {
-	tx, err := p.db.BeginTx(context.Background(), pgx.TxOptions{})
+	ctx, tx, commit, rollback, err := p.createTx()
 	if err != nil {
-		return nil, errors.New("error creating database transaction")
+		return nil, err
 	}
 
 	query := models.New(tx)
@@ -45,9 +74,11 @@ func (p *PostgresStore) UserInsert(email, password, id string, admin bool) (*sto
 		ID:       id,
 		Admin:    admin,
 	}
-	dbUser, err := query.UserInsert(context.Background(), params)
+	dbUser, err := query.UserInsert(ctx, params)
 	if err != nil {
-		tx.Rollback(context.Background())
+		if txErr := rollback(); txErr != nil {
+			return nil, txErr
+		}
 		var pge *pgconn.PgError
 		if errors.As(err, &pge) {
 			if pge.SQLState() == "23505" {
@@ -57,7 +88,9 @@ func (p *PostgresStore) UserInsert(email, password, id string, admin bool) (*sto
 		return nil, err
 	}
 
-	tx.Commit(context.Background())
+	if txErr := commit(); txErr != nil {
+		return nil, txErr
+	}
 	user := &store.User{
 		Email:     dbUser.Email,
 		ID:        dbUser.ID,
@@ -121,32 +154,87 @@ func (p *PostgresStore) UserRetrieve(id string) (*store.User, error) {
 }
 
 func (p *PostgresStore) UserUpdatePassword(id, newPassword string) error {
-	query := models.New(p.db)
+	ctx, tx, commit, rollback, err := p.createTx()
+	if err != nil {
+		return err
+	}
+	query := models.New(tx)
 	params := models.UserUpdatePasswordParams{
 		ID:       id,
 		Password: newPassword,
 	}
-	res, err := query.UserUpdatePassword(context.Background(), params)
+	res, err := query.UserUpdatePassword(ctx, params)
 	if err != nil {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
 		return err
 	}
 	if res.RowsAffected() == 0 {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
 		return store.ErrUserNotFound
+	}
+
+	if txErr := commit(); txErr != nil {
+		return txErr
 	}
 	return nil
 }
+
 func (p *PostgresStore) UserUpdateAdmin(id string, newAdminValue bool) error {
-	query := models.New(p.db)
+	ctx, tx, commit, rollback, err := p.createTx()
+	if err != nil {
+		return err
+	}
+	query := models.New(tx)
 	params := models.UserUpdateAdminParams{
 		ID:    id,
 		Admin: newAdminValue,
 	}
-	res, err := query.UserUpdateAdmin(context.Background(), params)
+	res, err := query.UserUpdateAdmin(ctx, params)
 	if err != nil {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
 		return err
 	}
 	if res.RowsAffected() == 0 {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
+
 		return store.ErrUserNotFound
+	}
+	if txErr := commit(); txErr != nil {
+		return txErr
+	}
+	return nil
+}
+
+func (p *PostgresStore) UserDelete(id string) error {
+	ctx, tx, commit, rollback, err := p.createTx()
+	if err != nil {
+		return err
+	}
+
+	query := models.New(tx)
+	res, err := query.UserDelete(ctx, id)
+	if err != nil {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
+		return err
+	}
+	if res.RowsAffected() == 0 {
+		if txErr := rollback(); txErr != nil {
+			return txErr
+		}
+		return store.ErrUserNotFound
+	}
+	if txErr := commit(); txErr != nil {
+		return txErr
 	}
 	return nil
 }
