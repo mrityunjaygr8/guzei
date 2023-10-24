@@ -2,7 +2,7 @@ package server
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httplog/v2"
 	"github.com/mrityunjaygr8/guzei/store"
 	"net/http"
 )
@@ -10,10 +10,15 @@ import (
 type Server struct {
 	router *chi.Mux
 	store  store.GuzeiStore
+	logger *httplog.Logger
 }
 
-func NewServer(store store.GuzeiStore) *Server {
-	app := &Server{store: store}
+func (a *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.router.ServeHTTP(w, r)
+}
+
+func NewServer(store store.GuzeiStore, logger *httplog.Logger) *Server {
+	app := &Server{store: store, logger: logger}
 	app.router = chi.NewRouter()
 
 	app.setupRouter()
@@ -21,18 +26,6 @@ func NewServer(store store.GuzeiStore) *Server {
 	return app
 }
 
-func (a *Server) setupRouter() {
-	a.router.Use(middleware.Logger)
-
-	a.router.Get("/", a.helloWorldServer)
-	a.router.Get("/ping", a.pingPongHandler)
-	a.router.Post("/users", a.UserInsert)
-	a.router.Get("/users", a.UserList)
-}
-
-func (a *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	a.router.ServeHTTP(w, r)
-}
 func (a *Server) helloWorldServer(w http.ResponseWriter, _ *http.Request) {
 	w.Write([]byte("Hello World"))
 }
