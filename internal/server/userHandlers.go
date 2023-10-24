@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"github.com/go-chi/httplog/v2"
 	"github.com/google/uuid"
 	"github.com/mrityunjaygr8/guzei/store"
 	"net/http"
@@ -27,6 +28,10 @@ func (a *Server) UserInsert(w http.ResponseWriter, r *http.Request) {
 			a.JsonError(w, http.StatusBadRequest, err.Error(), nil)
 			return
 		}
+		if errors.Is(err, store.ErrStoreError) {
+			a.logger.Logger.Info("woo woo")
+			//slog.Info("asdasd")
+		}
 		a.JsonError(w, http.StatusInternalServerError, err.Error(), nil)
 		return
 	}
@@ -38,6 +43,8 @@ func (a *Server) UserList(w http.ResponseWriter, r *http.Request) {
 	pageNumber := 1
 	var err error
 	query := r.URL.Query()
+	oplog := httplog.LogEntry(r.Context())
+	oplog.Info("woo woo", "poo poo", "doo doo")
 	if query.Has("pageSize") {
 		pageSize, err = strconv.Atoi(query.Get("pageSize"))
 		if err != nil {
