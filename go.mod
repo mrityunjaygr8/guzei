@@ -1,6 +1,8 @@
 module github.com/mrityunjaygr8/guzei
 
-go 1.20
+go 1.21
+
+toolchain go1.21.1
 
 require (
 	github.com/go-chi/chi/v5 v5.0.10
@@ -12,6 +14,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-chi/httplog/v2 v2.0.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
