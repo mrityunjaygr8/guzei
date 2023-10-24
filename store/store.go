@@ -11,6 +11,7 @@ type GuzeiStore interface {
 	UserRetrieve(id string) (*User, error)
 	UserUpdatePassword(id, newPassword string) error
 	UserUpdateAdmin(id string, newAdminValue bool) error
+	UserDelete(id string) error
 }
 
 type User struct {
@@ -29,3 +30,4 @@ type UsersList struct {
 
 var ErrUserExists = errors.New("user with specified email already exists")
 var ErrUserNotFound = errors.New("specified user does not exists")
+var ErrStoreError = errors.New("error persisting in storage")
