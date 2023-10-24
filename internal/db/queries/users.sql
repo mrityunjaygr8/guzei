@@ -1,5 +1,5 @@
 -- name: UserRetrieve :one
-SELECT email, "createdAt", "updatedAt", "ID", admin FROM users WHERE email = $1 LIMIT 1;
+SELECT email, "createdAt", "updatedAt", "ID", admin FROM users WHERE "ID" = $1 LIMIT 1;
 
 -- name: UsersList :many
 WITH row_data AS (
@@ -12,11 +12,11 @@ FROM row_data;
 -- name: UserInsert :one
 INSERT INTO users (email, password, "ID", admin) VALUES ($1, $2, $3, $4) RETURNING email, "createdAt", "updatedAt", "ID", admin;
 
--- name: UserUpdatePassword :exec
+-- name: UserUpdatePassword :execresult
 UPDATE users SET password = $2 WHERE "ID" = $1;
 
--- name: UserUpdateAdmin :exec
+-- name: UserUpdateAdmin :execresult
 UPDATE users SET admin = $2 WHERE "ID" = $1;
 
--- name: UserDelete :exec
+-- name: UserDelete :execresult
 DELETE FROM users WHERE "ID" = $1;

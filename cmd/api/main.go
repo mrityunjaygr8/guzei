@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/mrityunjaygr8/guzei/internal/postgres_store"
+	"github.com/mrityunjaygr8/guzei/internal/server"
 	"log"
 	"net/http"
 	"os"
@@ -9,12 +11,13 @@ import (
 func main() {
 	log.Println("woo")
 
-	pgStore, err := NewPostgresStore(os.Getenv("DATABASE_URL"))
+	pgStore, err := postgres_store.NewPostgresStore(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatal("error creating postgres store: ", err)
 	}
 
-	server := NewApplication(pgStore)
+	srv := server.NewServer(pgStore)
 
-	http.ListenAndServe(":3000", server)
+	log.Fatal(http.ListenAndServe(":3000", srv))
+
 }

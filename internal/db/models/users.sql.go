@@ -8,16 +8,16 @@ package models
 import (
 	"context"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const userDelete = `-- name: UserDelete :exec
+const userDelete = `-- name: UserDelete :execresult
 DELETE FROM users WHERE "ID" = $1
 `
 
-func (q *Queries) UserDelete(ctx context.Context, id string) error {
-	_, err := q.db.Exec(ctx, userDelete, id)
-	return err
+func (q *Queries) UserDelete(ctx context.Context, id string) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, userDelete, id)
 }
 
 const userInsert = `-- name: UserInsert :one
@@ -58,7 +58,7 @@ func (q *Queries) UserInsert(ctx context.Context, arg UserInsertParams) (UserIns
 }
 
 const userRetrieve = `-- name: UserRetrieve :one
-SELECT email, "createdAt", "updatedAt", "ID", admin FROM users WHERE email = $1 LIMIT 1
+SELECT email, "createdAt", "updatedAt", "ID", admin FROM users WHERE "ID" = $1 LIMIT 1
 `
 
 type UserRetrieveRow struct {
@@ -69,8 +69,8 @@ type UserRetrieveRow struct {
 	Admin     bool
 }
 
-func (q *Queries) UserRetrieve(ctx context.Context, email string) (UserRetrieveRow, error) {
-	row := q.db.QueryRow(ctx, userRetrieve, email)
+func (q *Queries) UserRetrieve(ctx context.Context, id string) (UserRetrieveRow, error) {
+	row := q.db.QueryRow(ctx, userRetrieve, id)
 	var i UserRetrieveRow
 	err := row.Scan(
 		&i.Email,
@@ -82,7 +82,7 @@ func (q *Queries) UserRetrieve(ctx context.Context, email string) (UserRetrieveR
 	return i, err
 }
 
-const userUpdateAdmin = `-- name: UserUpdateAdmin :exec
+const userUpdateAdmin = `-- name: UserUpdateAdmin :execresult
 UPDATE users SET admin = $2 WHERE "ID" = $1
 `
 
@@ -91,12 +91,11 @@ type UserUpdateAdminParams struct {
 	Admin bool
 }
 
-func (q *Queries) UserUpdateAdmin(ctx context.Context, arg UserUpdateAdminParams) error {
-	_, err := q.db.Exec(ctx, userUpdateAdmin, arg.ID, arg.Admin)
-	return err
+func (q *Queries) UserUpdateAdmin(ctx context.Context, arg UserUpdateAdminParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, userUpdateAdmin, arg.ID, arg.Admin)
 }
 
-const userUpdatePassword = `-- name: UserUpdatePassword :exec
+const userUpdatePassword = `-- name: UserUpdatePassword :execresult
 UPDATE users SET password = $2 WHERE "ID" = $1
 `
 
@@ -105,9 +104,8 @@ type UserUpdatePasswordParams struct {
 	Password string
 }
 
-func (q *Queries) UserUpdatePassword(ctx context.Context, arg UserUpdatePasswordParams) error {
-	_, err := q.db.Exec(ctx, userUpdatePassword, arg.ID, arg.Password)
-	return err
+func (q *Queries) UserUpdatePassword(ctx context.Context, arg UserUpdatePasswordParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, userUpdatePassword, arg.ID, arg.Password)
 }
 
 const usersList = `-- name: UsersList :many
