@@ -23,7 +23,7 @@ func (a *Server) setupRouter() {
 	v1Router := chi.NewRouter()
 
 	//v1Router.Get("/", a.helloWorldServer)
-	//v1Router.Get("/ping", a.pingPongHandler)
+	v1Router.Get("/ping", a.pingPongHandler)
 	v1Router.Post("/users", a.UserInsert)
 	v1Router.Get("/users", a.UserList)
 
