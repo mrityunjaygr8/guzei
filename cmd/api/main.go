@@ -29,7 +29,7 @@ func main() {
 			"/ping",
 		},
 		QuietDownPeriod: 10 * time.Second,
-		// SourceFieldName: "source",
+		//SourceFieldName: "source",
 	})
 	listenAddr := ":3000"
 	logger.Info("Starting server on port: ", listenAddr)
@@ -37,9 +37,15 @@ func main() {
 	pgStore, err := postgres_store.NewPostgresStore(os.Getenv("DATABASE_URL"))
 	if err != nil {
 		logger.Error("error creating postgres store: ", err)
+		os.Exit(1)
 	}
 
-	srv := server.NewServer(pgStore, logger)
+	srv, err := server.NewServer(pgStore, logger)
+	if err != nil {
+		logger.Error("error creating postgres store: ", err)
+		os.Exit(1)
+
+	}
 
 	httpServer := http.Server{
 		Addr:    listenAddr,
